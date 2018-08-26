@@ -1,0 +1,302 @@
+﻿using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
+using XInputDotNetPure;
+
+public class ControllerP2 : MonoBehaviour 
+{
+
+	bool playerIndexSet = false;
+	PlayerIndex playerIndex;
+	GamePadState state;
+	GamePadState prevState;
+
+	public GameObject P2Shield;
+
+	public float P2Speed = 600;
+
+	private int pointstoadd = 1;
+
+	public bool dash;
+	public bool shield;
+	public bool BigShot;
+
+
+	public Vector2 savedVelocity;
+
+	Rigidbody2D rbody;
+	Animator anim;
+
+	//	Dash Mechanic
+	public DashState dashState;
+	public float dashTimer;
+	public float maxDash = 2f;
+	public GameObject DashIcon;
+	public GameObject DashIconCharging;
+
+	// Shield Shield
+	public P2ShieldState shieldState;
+	public float shieldTimer;
+	public float maxShield = 2f;
+	public GameObject ShieldIcon;
+	public GameObject ShieldIconCharging;
+
+	// Shoot Mechanic
+	public ShootState shootState;
+	public float shootTimer;
+	public float maxShoot = 2f;
+	public GameObject BigShotIcon;
+	public GameObject BigShotIconCharging;
+	public GameObject bulletGameObject;
+	public GameObject PlayerBulletGO; //this is our players bullet prefab
+	public GameObject bulletPosition01;
+
+	private PlayerBullet playerbulletScript;
+
+	public AudioSource Audio;
+	public AudioClip Fireball;
+
+	public float P2savedSpeed;
+
+	int p2power = PlayerSelection.P2AbilityIndex;
+
+	// Use this for initialization
+	void Start () 
+	{
+
+		rbody = GetComponent<Rigidbody2D> ();
+		anim = GetComponent<Animator> ();
+
+
+		if (p2power == 0) 
+		{
+			DashIcon.SetActive (true);
+
+		}
+
+		if (p2power == 1) 
+		{
+
+			ShieldIcon.SetActive (true);
+
+		}
+
+		if (p2power == 2) 
+		{
+
+			BigShotIcon.SetActive (true);
+
+		}
+
+
+	}
+
+	void Update () 
+	{
+
+		if (!playerIndexSet || !prevState.IsConnected)
+		{
+			for (int k = 0; k < 4; ++k)
+			{
+				PlayerIndex testPlayerIndex = (PlayerIndex)k;
+				GamePadState testState = GamePad.GetState(testPlayerIndex);
+				if (testState.IsConnected)
+				{
+					Debug.Log(string.Format("GamePad found {0}", testPlayerIndex));
+					playerIndex = testPlayerIndex;
+					playerIndexSet = true;
+				}
+			}
+		}
+
+		if (playerIndex == PlayerIndex.Two) 
+		{
+
+			float moveHorizontal = Input.GetAxis ("HorizontalP2") * P2Speed * Time.deltaTime;
+			float moveVertical = Input.GetAxis ("VerticalP2") * P2Speed * Time.deltaTime;
+
+			transform.Translate (new Vector3 (moveHorizontal, moveVertical));
+
+			if (p2power == 0) 
+			{
+				
+				dash = true;
+
+			}
+
+			if (p2power == 1) 
+			{
+				
+				shield = true;
+
+			}
+
+			if (p2power == 2) 
+			{
+				
+				BigShot = true; 
+
+			}
+
+
+			if (dash == true) 
+			{
+			
+				switch (dashState) 
+				{
+				case DashState.Ready:
+					var isDashKeyDown = Input.GetButtonDown ("P2RB");
+					if (isDashKeyDown) 
+					{
+						P2savedSpeed = P2Speed;
+						P2Speed = P2Speed + 400;
+
+						DashIcon.SetActive (false);
+						DashIconCharging.SetActive (true);
+
+						dashState = DashState.Dashing;
+					}
+					break;
+				case DashState.Dashing:
+					dashTimer += Time.deltaTime * 3;
+					if (dashTimer >= maxDash) 
+					{
+						dashTimer = maxDash;
+						P2Speed = P2savedSpeed;
+						dashState = DashState.Cooldown;
+					}
+					break;
+				case DashState.Cooldown:
+					dashTimer -= Time.deltaTime;
+					if (dashTimer <= 0) 
+					{
+						dashTimer = 0;
+
+						DashIcon.SetActive (true);
+						DashIconCharging.SetActive (false);
+
+						dashState = DashState.Ready;
+					}
+					break;
+				}
+
+			}
+
+			if (shield == true) 
+			{
+				switch (shieldState) 
+				{
+				case P2ShieldState.Ready:
+					var P2ShieldKeyDown = Input.GetButtonDown ("P2RB");
+					if (P2ShieldKeyDown) 
+					{
+						P2Shield.SetActive (true);
+
+						ShieldIcon.SetActive (false);
+						ShieldIconCharging.SetActive (true);
+
+						shieldState = P2ShieldState.Shielding;
+					}
+					break;
+				case P2ShieldState.Shielding:
+					shieldTimer += Time.deltaTime * 3;
+					if (shieldTimer >= maxShield) 
+					{
+						shieldTimer = maxShield;
+
+						P2Shield.SetActive (false);
+
+						shieldState = P2ShieldState.Cooldown;
+					}
+					break;
+				case P2ShieldState.Cooldown:
+					shieldTimer -= Time.deltaTime;
+					if (shieldTimer <= 0) 
+					{
+						shieldTimer = 0;
+
+						ShieldIcon.SetActive (true);
+						ShieldIconCharging.SetActive (false);
+
+
+						shieldState = P2ShieldState.Ready;
+					}
+					break;
+				}
+			}
+
+			if (BigShot == true) 
+			{
+				switch (shootState) 
+				{
+				case ShootState.Ready:
+					var P1CloneKeyDown = Input.GetButtonDown ("P2RB");
+					if (P1CloneKeyDown) 
+					{
+
+						BigShotIcon.SetActive (false);
+						BigShotIconCharging.SetActive (true);
+
+						Audio.PlayOneShot(Fireball);
+
+						//instantiate the first bullet
+						GameObject bullet01 = (GameObject)Instantiate (PlayerBulletGO, transform.position, Quaternion.identity);
+						//bullet01.transform.position = bulletPosition01.transform.position; //set the bullet initial postion
+
+						bullet01.GetComponent<PlayerBullet> ().xspeed = 5.0f;
+
+						shootState = ShootState.Shooting;
+					}
+					break;
+				case ShootState.Shooting:
+					shootTimer += Time.deltaTime * 3;
+					if (shootTimer >= maxShoot) 
+					{
+						shootTimer = maxShoot;
+
+						shootState = ShootState.Cooldown;
+					}
+					break;
+				case ShootState.Cooldown:
+					shootTimer -= Time.deltaTime;
+					if (shootTimer <= 0) 
+					{
+						shootTimer = 0;
+
+						BigShotIcon.SetActive (true);
+						BigShotIconCharging.SetActive (false);
+
+						shootState = ShootState.Ready;
+					}
+					break;
+				}
+			}
+
+
+	
+		}
+
+	}﻿
+		
+	public enum DashState 
+	{
+		Ready,
+		Dashing,
+		Cooldown
+	}
+
+	public enum P2ShieldState 
+	{
+		Ready,
+		Shielding,
+		Cooldown
+	}
+
+	public enum ShootState 
+	{
+		Ready,
+		Shooting,
+		Cooldown
+	}
+
+}
