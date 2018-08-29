@@ -11,7 +11,6 @@ public class Scored : MonoBehaviour
 
 		if (other.gameObject.tag == "Ball" && gameObject.tag == "Goal2") 
 		{
-			Debug.Log ("Player 1 Scored!!!!");
 
 			ScoreManager.P1AddPoints (pointstoadd);
 
@@ -20,7 +19,6 @@ public class Scored : MonoBehaviour
 
 		if (other.gameObject.tag == "Ball" && gameObject.tag == "Goal1") 
 		{
-			Debug.Log ("Player 2 Scored!!!!");
 
 			ScoreManager.P2AddPoints (pointstoadd);
 		}

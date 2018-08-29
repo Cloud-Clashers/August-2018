@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using XInputDotNetPure;
 
 public class CloudClashersPauseGame : MonoBehaviour 
 {
@@ -17,6 +18,9 @@ public class CloudClashersPauseGame : MonoBehaviour
 	public int menuindex = 0;
 	public int totalLevels = 4;
 	public float yOffset = 1f;
+
+	GamePadState state;
+	GamePadState prevState;
 
 
 	private bool paused = false;
@@ -54,7 +58,7 @@ public class CloudClashersPauseGame : MonoBehaviour
 			}
 		} 
 			
-		if (Input.GetKeyDown (KeyCode.DownArrow) )
+		if (Input.GetKeyDown (KeyCode.DownArrow) || prevState.DPad.Down == ButtonState.Released && state.DPad.Down == ButtonState.Pressed )
 		{
 			if (menuindex < totalLevels - 1) 
 			{
@@ -65,7 +69,7 @@ public class CloudClashersPauseGame : MonoBehaviour
 			}
 		}
 
-		if (Input.GetKeyDown (KeyCode.UpArrow) )
+		if (Input.GetKeyDown (KeyCode.UpArrow) || prevState.DPad.Up == ButtonState.Released && state.DPad.Up == ButtonState.Pressed )
 		{
 			if (menuindex > 0) 
 			{

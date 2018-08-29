@@ -18,7 +18,7 @@ public class P2CharacterSync : MonoBehaviour
 	public Sprite[] p2CharacterOptions;
 	public Animator[] p2AnimationOptions;
 
-	int p2 = PlayerSelection.P2CharIndex;
+	int p2 = PlayerSelectionP2.P2CharIndex;
 
 
 
@@ -35,7 +35,7 @@ public class P2CharacterSync : MonoBehaviour
 	void Update () 
 	{
 
-		if (p2 == PlayerSelection.P2CharIndex) 
+		if (p2 == PlayerSelectionP2.P2CharIndex) 
 		{
 
 			SRP2part.sprite = p2CharacterOptions [p2];

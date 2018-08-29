@@ -13,7 +13,7 @@ public class ControllerP1 : MonoBehaviour
 
 	public GameObject P1Shield;
 
-	private float P1Speed = 600;
+	public float P1Speed = 600;
 
 	private int pointstoadd = 1;
 
@@ -91,34 +91,45 @@ public class ControllerP1 : MonoBehaviour
 
 	}
 
+	void FixedUpdate()
+	{
+
+		playerIndex = PlayerIndex.One;
+
+	}
+
 	void Update ()
 	{
 
-		if (!playerIndexSet || !prevState.IsConnected)
+		if (!playerIndexSet || !prevState.IsConnected) 
 		{
-			for (int k = 0; k < 4; ++k)
+			for (int k = 0; k < 4; k++) 
 			{
 				PlayerIndex testPlayerIndex = (PlayerIndex)k;
-				GamePadState testState = GamePad.GetState(testPlayerIndex);
-				if (testState.IsConnected)
+				GamePadState testState = GamePad.GetState (testPlayerIndex);
+				if (testState.IsConnected) 
 				{
-					Debug.Log(string.Format("GamePad found {0}", testPlayerIndex));
+					Debug.Log (string.Format ("GamePad found {0}", testPlayerIndex));
 					playerIndex = testPlayerIndex;
 					playerIndexSet = true;
+					Debug.Log ("Player One Index is: " + playerIndex);
 				}
 			}
 		}
+
+		prevState = state;
+		state = GamePad.GetState (playerIndex);
+
+		playerIndex = PlayerIndex.One;
 
 
 		if (playerIndex == PlayerIndex.One) 
 		{
 
-			float moveHorizontal = Input.GetAxis ("HorizontalP1") * P1Speed * Time.deltaTime;
-			float moveVertical = Input.GetAxis ("VerticalP1") * P1Speed * Time.deltaTime;
+			float moveHorizontal = state.ThumbSticks.Left.X * P1Speed * Time.deltaTime;
+			float moveVertical = state.ThumbSticks.Left.Y * P1Speed * Time.deltaTime;
 
-			transform.Translate (new Vector3 (moveHorizontal, moveVertical));
-
-			Debug.Log ("p1 power = " + p1power);
+			this.transform.Translate (new Vector3 (moveHorizontal, moveVertical,0f));
 
 
 			if (p1power == 0) 
@@ -145,7 +156,7 @@ public class ControllerP1 : MonoBehaviour
 				switch (dashState) 
 				{
 				case DashState.Ready:
-					var isDashKeyDown = Input.GetButtonDown ("P1RB");
+					var isDashKeyDown = prevState.Buttons.RightShoulder == ButtonState.Released && state.Buttons.RightShoulder == ButtonState.Pressed;
 					if (isDashKeyDown) 
 					{
 
@@ -189,7 +200,7 @@ public class ControllerP1 : MonoBehaviour
 				switch (shieldState) 
 				{
 				case ShieldState.Ready:
-					var P1ShieldKeyDown = Input.GetButtonDown ("P1RB");
+					var P1ShieldKeyDown = prevState.Buttons.RightShoulder == ButtonState.Released && state.Buttons.RightShoulder == ButtonState.Pressed;
 					if (P1ShieldKeyDown) 
 					{
 						P1Shield.SetActive (true);
@@ -234,7 +245,7 @@ public class ControllerP1 : MonoBehaviour
 				switch (shootState) 
 				{
 				case ShootState.Ready:
-					var P1CloneKeyDown = Input.GetButtonDown ("P1RB");
+					var P1CloneKeyDown = prevState.Buttons.RightShoulder == ButtonState.Released && state.Buttons.RightShoulder == ButtonState.Pressed;
 					if (P1CloneKeyDown) 
 					{
 
@@ -247,7 +258,7 @@ public class ControllerP1 : MonoBehaviour
 						GameObject bullet01 = (GameObject)Instantiate (PlayerBulletGO, transform.position, Quaternion.identity);
 						//bullet01.transform.position = bulletPosition01.transform.position; //set the bullet initial postion
 
-						bullet01.GetComponent<PlayerBullet> ().xspeed = 20.0f;
+						bullet01.GetComponent<PlayerBullet> ().xspeed = 15.0f;
 
 						shootState = ShootState.Shooting;
 					}
